@@ -9,20 +9,28 @@ enum BundleSwizzler {
     private static var resolver: FallbackBundleResolver?
     private static let lock = NSLock()
 
+    /// Thread-local key for re-entrancy guard to prevent recursive fallback lookups.
+    private static let resolvingKey = "com.localechain.isResolving"
+
+    /// Injectable locale provider for testing. Defaults to Locale.preferredLanguages.
+    static var preferredLanguagesProvider: () -> [String] = { Locale.preferredLanguages }
+
     static var isActive: Bool {
         lock.lock()
         defer { lock.unlock() }
         return _isActive
     }
 
-    /// Activate swizzling with the given resolver. Safe to call multiple times.
+    /// Activate swizzling with the given resolver.
+    /// If already active, updates the resolver in-place without re-swizzling.
     static func activate(resolver: FallbackBundleResolver) {
         lock.lock()
         defer { lock.unlock() }
 
+        self.resolver = resolver
+
         guard !_isActive else { return }
 
-        self.resolver = resolver
         swizzle()
         _isActive = true
     }
@@ -48,10 +56,18 @@ enum BundleSwizzler {
 
         guard let currentResolver else { return nil }
 
-        // Determine current locale from the bundle's preferred localizations
-        guard let currentLocale = bundle.preferredLocalizations.first else { return nil }
+        // Use the user's actual preferred languages, not the bundle's negotiated locale.
+        // Locale.preferredLanguages gives raw user preferences (e.g., "pt-BR")
+        // even when the bundle doesn't support that locale.
+        let preferredLanguages = preferredLanguagesProvider()
 
-        return currentResolver.resolve(key: key, table: table, locale: currentLocale)
+        for language in preferredLanguages {
+            if let result = currentResolver.resolve(key: key, table: table, locale: language) {
+                return result
+            }
+        }
+
+        return nil
     }
 
     // MARK: - Private
@@ -71,8 +87,27 @@ enum BundleSwizzler {
             let original = unsafeBitCast(BundleSwizzler.originalIMP!, to: OriginalFunc.self)
             let result = original(bundle, selector, key, value, table)
 
-            // If result equals key, the string was not found — try fallback
-            if result == key {
+            // Re-entrancy guard: skip fallback if we're already resolving.
+            // Each thread has its own flag via threadDictionary, so concurrent
+            // lookups on different threads are independent.
+            if Thread.current.threadDictionary[BundleSwizzler.resolvingKey] as? Bool == true {
+                return result
+            }
+
+            // Detect if the key was not found:
+            // - value is nil/empty: localizedString returns key on miss
+            // - value is non-nil/non-empty: localizedString returns value on miss
+            let keyNotFound: Bool
+            if let value = value, !value.isEmpty {
+                keyNotFound = (result == value)
+            } else {
+                keyNotFound = (result == key)
+            }
+
+            if keyNotFound {
+                Thread.current.threadDictionary[BundleSwizzler.resolvingKey] = true
+                defer { Thread.current.threadDictionary[BundleSwizzler.resolvingKey] = false }
+
                 if let fallback = BundleSwizzler.resolveFallback(
                     key: key, value: value, table: table, bundle: bundle
                 ) {

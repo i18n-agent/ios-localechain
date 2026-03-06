@@ -3,6 +3,33 @@ import XCTest
 
 final class FallbackMapTests: XCTestCase {
 
+    // MARK: - Chinese
+
+    func testZhHantHKFallsBackToZhHantTWThenZhHant() {
+        let chain = FallbackMap.defaultFallbacks["zh-Hant-HK"]
+        XCTAssertEqual(chain, ["zh-Hant-TW", "zh-Hant"])
+    }
+
+    func testZhHantMOFallsBackToZhHantHKThenZhHantTWThenZhHant() {
+        let chain = FallbackMap.defaultFallbacks["zh-Hant-MO"]
+        XCTAssertEqual(chain, ["zh-Hant-HK", "zh-Hant-TW", "zh-Hant"])
+    }
+
+    func testZhHantTWFallsBackToZhHant() {
+        let chain = FallbackMap.defaultFallbacks["zh-Hant-TW"]
+        XCTAssertEqual(chain, ["zh-Hant"])
+    }
+
+    func testZhHansSGFallsBackToZhHans() {
+        let chain = FallbackMap.defaultFallbacks["zh-Hans-SG"]
+        XCTAssertEqual(chain, ["zh-Hans"])
+    }
+
+    func testZhHansMYFallsBackToZhHans() {
+        let chain = FallbackMap.defaultFallbacks["zh-Hans-MY"]
+        XCTAssertEqual(chain, ["zh-Hans"])
+    }
+
     // MARK: - Portuguese
 
     func testPtBRFallsBackToPtPTThenPt() {
@@ -13,6 +40,16 @@ final class FallbackMapTests: XCTestCase {
     func testPtPTFallsBackToPt() {
         let chain = FallbackMap.defaultFallbacks["pt-PT"]
         XCTAssertEqual(chain, ["pt"])
+    }
+
+    func testPtAOFallsBackToPtPTThenPt() {
+        let chain = FallbackMap.defaultFallbacks["pt-AO"]
+        XCTAssertEqual(chain, ["pt-PT", "pt"])
+    }
+
+    func testPtMZFallsBackToPtPTThenPt() {
+        let chain = FallbackMap.defaultFallbacks["pt-MZ"]
+        XCTAssertEqual(chain, ["pt-PT", "pt"])
     }
 
     // MARK: - Spanish
@@ -71,6 +108,70 @@ final class FallbackMapTests: XCTestCase {
         XCTAssertEqual(chain, ["de"])
     }
 
+    // MARK: - English
+
+    func testEnGBFallsBackToEn() {
+        let chain = FallbackMap.defaultFallbacks["en-GB"]
+        XCTAssertEqual(chain, ["en"])
+    }
+
+    func testEnAUFallsBackToEnGBThenEn() {
+        let chain = FallbackMap.defaultFallbacks["en-AU"]
+        XCTAssertEqual(chain, ["en-GB", "en"])
+    }
+
+    func testEnNZFallsBackToEnAUThenEnGBThenEn() {
+        let chain = FallbackMap.defaultFallbacks["en-NZ"]
+        XCTAssertEqual(chain, ["en-AU", "en-GB", "en"])
+    }
+
+    func testEnINFallsBackToEnGBThenEn() {
+        let chain = FallbackMap.defaultFallbacks["en-IN"]
+        XCTAssertEqual(chain, ["en-GB", "en"])
+    }
+
+    func testEnCAFallsBackToEn() {
+        let chain = FallbackMap.defaultFallbacks["en-CA"]
+        XCTAssertEqual(chain, ["en"])
+    }
+
+    func testEnZAFallsBackToEnGBThenEn() {
+        let chain = FallbackMap.defaultFallbacks["en-ZA"]
+        XCTAssertEqual(chain, ["en-GB", "en"])
+    }
+
+    func testEnIEFallsBackToEnGBThenEn() {
+        let chain = FallbackMap.defaultFallbacks["en-IE"]
+        XCTAssertEqual(chain, ["en-GB", "en"])
+    }
+
+    func testEnSGFallsBackToEnGBThenEn() {
+        let chain = FallbackMap.defaultFallbacks["en-SG"]
+        XCTAssertEqual(chain, ["en-GB", "en"])
+    }
+
+    // MARK: - Arabic
+
+    func testArSAFallsBackToAr() {
+        let chain = FallbackMap.defaultFallbacks["ar-SA"]
+        XCTAssertEqual(chain, ["ar"])
+    }
+
+    func testArEGFallsBackToAr() {
+        let chain = FallbackMap.defaultFallbacks["ar-EG"]
+        XCTAssertEqual(chain, ["ar"])
+    }
+
+    func testArAEFallsBackToAr() {
+        let chain = FallbackMap.defaultFallbacks["ar-AE"]
+        XCTAssertEqual(chain, ["ar"])
+    }
+
+    func testArMAFallsBackToAr() {
+        let chain = FallbackMap.defaultFallbacks["ar-MA"]
+        XCTAssertEqual(chain, ["ar"])
+    }
+
     // MARK: - Other
 
     func testItCHFallsBackToIt() {
@@ -120,6 +221,21 @@ final class FallbackMapTests: XCTestCase {
     func testNoCyclicFallbacks() {
         for (locale, chain) in FallbackMap.defaultFallbacks {
             XCTAssertFalse(chain.contains(locale), "Fallback chain for \(locale) must not contain itself")
+        }
+    }
+
+    func testNoTransitiveCycles() {
+        // Verify no chain A -> B -> A cycles exist in the default map
+        let fallbacks = FallbackMap.defaultFallbacks
+        for (locale, chain) in fallbacks {
+            for target in chain {
+                if let targetChain = fallbacks[target] {
+                    XCTAssertFalse(
+                        targetChain.contains(locale),
+                        "Transitive cycle detected: \(locale) -> \(target) -> \(locale)"
+                    )
+                }
+            }
         }
     }
 }

@@ -55,21 +55,18 @@ final class FallbackBundleResolver: @unchecked Sendable {
     }
 
     /// Load the .lproj bundle for a locale, using the cache.
+    /// Holds the lock for the entire operation to prevent TOCTOU races
+    /// where two threads could redundantly load the same bundle.
     private func loadBundle(for locale: String) -> Bundle? {
         lock.lock()
+        defer { lock.unlock() }
+
         if let cached = bundleCache[locale] {
-            lock.unlock()
             return cached
         }
-        lock.unlock()
 
-        // Try to find the .lproj directory
         let bundle = findLprojBundle(for: locale)
-
-        lock.lock()
         bundleCache[locale] = bundle
-        lock.unlock()
-
         return bundle
     }
 
