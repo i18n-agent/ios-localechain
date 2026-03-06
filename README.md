@@ -32,14 +32,14 @@ LocaleChain intercepts `Bundle.localizedString(forKey:value:table:)` and walks a
 File > Add Package Dependencies > Enter:
 
 ```
-https://github.com/AceCana662/LocaleChain.git
+https://github.com/i18n-agent/ios-localechain.git
 ```
 
 ### Package.swift
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/AceCana662/LocaleChain.git", from: "0.1.0")
+    .package(url: "https://github.com/i18n-agent/ios-localechain.git", from: "0.1.0")
 ]
 ```
 
