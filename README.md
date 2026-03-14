@@ -64,7 +64,7 @@ All default fallback chains are active. A `pt-BR` user will now see `pt-PT` tran
 LocaleChain.configure()
 ```
 
-Uses all built-in fallback chains. Covers Portuguese, Spanish, French, German, Italian, Dutch, Norwegian, and Malay regional variants.
+Uses all built-in fallback chains. Covers Chinese, Portuguese, Spanish, French, German, Italian, Dutch, English, Arabic, Norwegian, and Malay regional variants.
 
 ### With overrides (merge with defaults)
 
@@ -94,12 +94,24 @@ Only the chains you specify will be active. No defaults.
 
 ## Default Fallback Map
 
+### Chinese
+
+| Locale | Fallback Chain |
+|--------|---------------|
+| zh-Hant-HK | zh-Hant-TW -> zh-Hant -> (dev language) |
+| zh-Hant-MO | zh-Hant-HK -> zh-Hant-TW -> zh-Hant -> (dev language) |
+| zh-Hant-TW | zh-Hant -> (dev language) |
+| zh-Hans-SG | zh-Hans -> (dev language) |
+| zh-Hans-MY | zh-Hans -> (dev language) |
+
 ### Portuguese
 
 | Locale | Fallback Chain |
 |--------|---------------|
 | pt-BR | pt-PT -> pt -> (dev language) |
 | pt-PT | pt -> (dev language) |
+| pt-AO | pt-PT -> pt -> (dev language) |
+| pt-MZ | pt-PT -> pt -> (dev language) |
 
 ### Spanish
 
@@ -169,6 +181,40 @@ Only the chains you specify will be active. No defaults.
 |--------|---------------|
 | nb | no -> (dev language) |
 | nn | nb -> no -> (dev language) |
+
+### English
+
+| Locale | Fallback Chain |
+|--------|---------------|
+| en-GB | en -> (dev language) |
+| en-AU | en-GB -> en -> (dev language) |
+| en-NZ | en-AU -> en-GB -> en -> (dev language) |
+| en-IN | en-GB -> en -> (dev language) |
+| en-CA | en -> (dev language) |
+| en-ZA | en-GB -> en -> (dev language) |
+| en-IE | en-GB -> en -> (dev language) |
+| en-SG | en-GB -> en -> (dev language) |
+
+### Arabic
+
+| Locale | Fallback Chain |
+|--------|---------------|
+| ar-SA | ar -> (dev language) |
+| ar-EG | ar -> (dev language) |
+| ar-AE | ar -> (dev language) |
+| ar-MA | ar -> (dev language) |
+| ar-DZ | ar -> (dev language) |
+| ar-IQ | ar -> (dev language) |
+| ar-KW | ar -> (dev language) |
+| ar-QA | ar -> (dev language) |
+| ar-BH | ar -> (dev language) |
+| ar-OM | ar -> (dev language) |
+| ar-JO | ar -> (dev language) |
+| ar-LB | ar -> (dev language) |
+| ar-TN | ar -> (dev language) |
+| ar-LY | ar -> (dev language) |
+| ar-SD | ar -> (dev language) |
+| ar-YE | ar -> (dev language) |
 
 ### Malay
 
